@@ -12,6 +12,13 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "extra": {
+      "supabaseUrl": "${SUPABASE_URL}",
+      "supabaseAnonKey": "${SUPABASE_ANON_KEY}"
+    },
+    "experiments": {
+      "typedRoutes": true
+    },
     "ios": {
       "supportsTablet": true
     },
