@@ -7,6 +7,7 @@ import HomeScreen from '../screens/HomeScreen';
 import UploadScreen from '../screens/UploadScreen';
 import MyMusicScreen from '../screens/MyMusicScreen';
 import ContactScreen from '../screens/ContactScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -31,10 +32,10 @@ export default function TabNavigator() {
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#667eea',
+        tabBarActiveTintColor: '#1DB954',
         tabBarInactiveTintColor: 'gray',
         tabBarStyle: {
-          backgroundColor: 'white',
+          backgroundColor: 'rgba(26, 26, 46, 0.95)',
           borderTopWidth: 0,
           elevation: 10,
           shadowColor: '#000',
@@ -79,6 +80,14 @@ export default function TabNavigator() {
         component={ContactScreen} 
         options={{
           tabBarLabel: 'Contacto',
+        }}
+      />
+      <Tab.Screen 
+        name="Profile" 
+        component={ProfileScreen} 
+        options={{
+          tabBarLabel: 'Perfil',
+          tabBarStyle: { display: 'none' },
         }}
       />
     </Tab.Navigator>
