@@ -9,23 +9,95 @@ import {
     Platform,
     ScrollView,
     Alert,
+    ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { authService } from '../services/authService';
 
 export default function LoginScreen({ navigation }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [isLogin, setIsLogin] = useState(true);
     const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
 
-    const handleLogin = () => {
+    const handleLogin = async () => {
         if (!email || !password) {
             Alert.alert('Error', 'Por favor completa todos los campos');
             return;
         }
-        // Aquí iría la lógica de autenticación
-        navigation.navigate('Home');
+
+        // Validar formato de email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            Alert.alert('Error', 'Por favor ingresa un correo electrónico válido');
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            if (isLogin) {
+                // Iniciar sesión
+                const { user, error } = await authService.signIn(email, password);
+                
+                if (error) {
+                    Alert.alert('Error', error.message || 'Error al iniciar sesión');
+                    setLoading(false);
+                    return;
+                }
+
+                if (user) {
+                    Alert.alert('Éxito', 'Sesión iniciada correctamente', [
+                        { text: 'OK', onPress: () => navigation.navigate('Home') }
+                    ]);
+                }
+            } else {
+                // Registrar nuevo usuario
+                if (password !== confirmPassword) {
+                    Alert.alert('Error', 'Las contraseñas no coinciden');
+                    setLoading(false);
+                    return;
+                }
+
+                if (password.length < 6) {
+                    Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
+                    setLoading(false);
+                    return;
+                }
+
+                const { user, error } = await authService.signUp(email, password);
+                
+                if (error) {
+                    Alert.alert('Error', error.message || 'Error al crear la cuenta');
+                    setLoading(false);
+                    return;
+                }
+
+                if (user) {
+                    Alert.alert(
+                        'Cuenta creada',
+                        'Tu cuenta ha sido creada exitosamente. Por favor, verifica tu correo electrónico.',
+                        [
+                            { 
+                                text: 'OK', 
+                                onPress: () => {
+                                    setIsLogin(true);
+                                    setPassword('');
+                                    setConfirmPassword('');
+                                }
+                            }
+                        ]
+                    );
+                }
+            }
+        } catch (error) {
+            Alert.alert('Error', 'Ocurrió un error inesperado. Por favor, intenta de nuevo.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleGoogleLogin = () => {
@@ -112,15 +184,25 @@ export default function LoginScreen({ navigation }) {
                                     style={styles.input}
                                     placeholder="Confirmar contraseña"
                                     placeholderTextColor="#666"
+                                    value={confirmPassword}
+                                    onChangeText={setConfirmPassword}
                                     secureTextEntry={!showPassword}
                                 />
                             </View>
                         )}
 
-                        <TouchableOpacity style={styles.primaryButton} onPress={handleLogin}>
-                            <Text style={styles.primaryButtonText}>
-                                {isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}
-                            </Text>
+                        <TouchableOpacity 
+                            style={[styles.primaryButton, loading && styles.primaryButtonDisabled]} 
+                            onPress={handleLogin}
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <ActivityIndicator color="#fff" />
+                            ) : (
+                                <Text style={styles.primaryButtonText}>
+                                    {isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}
+                                </Text>
+                            )}
                         </TouchableOpacity>
 
                         <View style={styles.divider}>
@@ -312,6 +394,9 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontSize: 14,
         textDecorationLine: 'underline',
+    },
+    primaryButtonDisabled: {
+        opacity: 0.6,
     },
 });
 
